@@ -1,0 +1,52 @@
+---
+# ------------------- App Ingress ------------------- #
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sentinel-dashboard-headless
+  namespace: default
+
+spec:
+  rules:
+  - host: sentinel-web.sentinel-demo.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: sentinel-dashboard-headless
+          servicePort: server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinel-dashboard-headless
+  labels:
+    app: sentinel-dashboard-headless
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - port: 8858
+      name: server
+  selector:
+    app: sentinel-dashboard
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinel-dashboard
+spec:
+  selector:
+    matchLabels:
+      app: sentinel-dashboard
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: sentinel-dashboard
+    spec:
+      containers:
+      - name: sentinel-dashboard
+        image: bladex/sentinel-dashboard:1.7.2
+        ports:
+        - containerPort: 8858
